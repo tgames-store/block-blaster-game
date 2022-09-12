@@ -630,6 +630,7 @@ document.addEventListener('DOMContentLoaded', reset());
 document.getElementById("closeButton").onclick=function(){
     self.close()
 }
+
 //Minimize
 document.getElementById("minimizeButton").onclick=function(){
     minimize();
