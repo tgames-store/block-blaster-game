@@ -185,6 +185,7 @@ function render(){
     if (enemyScore >= 3) {
         clearTimers();
         gameOver = true;
+        tgames.gameOver( score );
         resetButton.style.display = 'block';
         fader = 0;
     }
@@ -200,17 +201,7 @@ function getMousePos(canvas, evt) {
 //Click Event
 function canvasClick(){
     if (gameOver) {
-        tgames.gameOver( score );
-
-        if ( fader > .5 ) {
-            resetButton.addEventListener('click', () => {
-                tgames.showRewardedAd();
-
-                reset();
-                resetButton.style.display = 'none';
-            });
-        }
-        return;
+        // game over function
     }
     if (ready) {
         init();
@@ -644,7 +635,16 @@ document.getElementById("minimizeButton").onclick=function(){
     minimize();
 }
 
-canvas.addEventListener("click",canvasClick);
+canvas.addEventListener("click", canvasClick);
+
+resetButton.addEventListener('click',() => {
+    tgames.showRewardedAd();
+
+    if ( fader > .5 ) {
+        reset();
+        resetButton.style.display = 'none';
+    }
+});
 
 //Mouse move event
 canvas.addEventListener('mousemove', function(evt) {
