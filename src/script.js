@@ -20,7 +20,8 @@ var spawntime;
 var gameTime;
 var difficulty;
 var score;
-var highScore=0;
+var highScore = 0;
+let adsCounter = 2;
 var gameOver;
 var entities = [];
 var entitiesToRemove = []
@@ -31,7 +32,11 @@ var tripleShotTimer;
 var flash = false;
 var bonusPointsMessage = false;
 var tripleShotMessage = false;
+let spareLife = true;
 let resetButton = document.getElementById('restart');
+let continueButton = document.getElementById('continue');
+let skipButton = document.getElementById('skip');
+let watchAdsContainer = document.querySelector('.watchAdsContainer')
 
 //Global Functions
 //----------------
@@ -48,6 +53,7 @@ function reset() {
     score = 0;
     spawntime = 1500;
     gameOver = false;
+    spareLife = true;
     fader = 0;
     entities = [];
     entitiesToRemove = [];
@@ -66,7 +72,7 @@ function clearTimers(){
 
 //Initialize all timers
 function initializeTimers(){
-    difficultyTimer = setInterval(increaseDifficulty,2000);
+    difficultyTimer = setInterval(increaseDifficulty,2000 * ((difficulty + 20) / 20));
     spawnTimer = setInterval(spawnEnemy,spawntime);
 }
 
@@ -145,6 +151,9 @@ function drawReadyScreen(){
     ctx.fillStyle = "rgba(255,255,255," + fader + ")";
     ctx.font = "72px sans-serif";
     ctx.fillText("READY?",canvas.width / 2 - 140,canvas.height / 2);
+    ctx.fillStyle = "rgba(255,255,255," + .5 + ")";
+    ctx.font = "32px sans-serif";
+    ctx.fillText("You have only 3 lives",canvas.width / 2 - 150,60 + canvas.height / 2);
     drawScore();
 }
 
@@ -163,6 +172,16 @@ function drawGameOver(){
     ctx.fillStyle = "rgba(255,255,255," + fader + ")";
     ctx.font = "64px sans-serif";
     ctx.fillText("GAME OVER",canvas.width / 2 - 195,canvas.height / 2);
+
+    tgames.gameOver( score );
+    resetButton.style.display = 'block';
+}
+
+// Resize canvas
+function handleResize() {
+    ctx.canvas.width = window.innerWidth;
+    ctx.canvas.height = window.innerHeight - 30;
+    render()
 }
 
 //Render everything
@@ -170,11 +189,27 @@ function render(){
     drawBG();
     drawEntities();
     drawScore();
-    if (flash){drawFlash();}
-    if (bonusPointsMessage){drawBonusPointsMessage();}
-    if (tripleShotMessage){drawTripleShotMessage();}
-    if (gameOver){drawGameOver(); return;}
-    else if (ready){drawReadyScreen(); return;}
+    if ( flash ){
+        drawFlash();
+    }
+    if ( bonusPointsMessage ) {
+        drawBonusPointsMessage();
+    }
+    if ( tripleShotMessage ){
+        drawTripleShotMessage();
+    }
+    if ( gameOver ) {
+        if ( spareLife ) {
+            drawContinueByAds();
+        } else {
+            drawGameOver();
+        }
+        return;
+    }
+    else if ( ready ) {
+        drawReadyScreen();
+        return;
+    }
 
     updateEntities();
     entitiesToRemove.forEach(function(e){
@@ -185,8 +220,6 @@ function render(){
     if (enemyScore >= 3) {
         clearTimers();
         gameOver = true;
-        tgames.gameOver( score );
-        resetButton.style.display = 'block';
         fader = 0;
     }
 }
@@ -234,6 +267,26 @@ function drawFlash(){
     if (fader <= 0) {
         flash = false;
     }
+}
+
+function drawContinueByAds() {
+    enemyScore = 0;
+    ctx.fillStyle = "rgba(0,0,0," + fader + ")";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    drawStatic(fader/2);
+    drawScore();
+    fader += .1 * 1/fps
+    ctx.fillStyle = "rgba(255,255,255," + fader + ")";
+    ctx.font = "32px sans-serif";
+    ctx.fillText("Continue by watch ads?",canvas.width / 2 - 170,canvas.height / 2);
+
+    setTimeout(() => {
+        watchAdsContainer.style.display = 'none';
+        spareLife = false;
+        drawGameOver();
+    }, 4000);
+
+    watchAdsContainer.style.display = 'flex';
 }
 
 //Draw Bonus points message
@@ -627,25 +680,49 @@ PowerUp.prototype.render = function(){
 document.addEventListener('DOMContentLoaded', reset());
 
 //Close
-document.getElementById("closeButton").onclick=function(){
-    self.close()
-}
-
-//Minimize
-document.getElementById("minimizeButton").onclick=function(){
-    minimize();
-}
+// document.getElementById("closeButton").onclick=function(){
+//     self.close()
+// }
+//
+// //Minimize
+// document.getElementById("minimizeButton").onclick=function(){
+//     minimize();
+// }
 
 canvas.addEventListener("click", canvasClick);
 
+window.addEventListener("resize", handleResize);
+
 resetButton.addEventListener('click',() => {
-    tgames.showRewardedAd();
+    if (adsCounter === 0 || adsCounter < 0) {
+        tgames.showRewardedAd();
+        adsCounter = 3;
+    } else {
+        adsCounter--;
+    }
 
     if ( fader > .5 ) {
         reset();
         resetButton.style.display = 'none';
     }
 });
+
+continueButton.addEventListener('click', async () => {
+    await tgames.showRewardedAd();
+    adsCounter--;
+
+    watchAdsContainer.style.display = 'none';
+    gameOver = false;
+    enemyScore = 0;
+    initializeTimers();
+    render()
+})
+
+skipButton.addEventListener('click', async () => {
+    watchAdsContainer.style.display = 'none';
+    spareLife = false;
+    drawGameOver();
+})
 
 //Mouse move event
 canvas.addEventListener('mousemove', function(evt) {
