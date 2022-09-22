@@ -17,6 +17,8 @@ var renderTimer = setInterval(render,1/fps*100);
 var difficultyTimer;
 var spawnTimer;
 var spawntime;
+var continueTimeout;
+var clearTimeoutParam = false;
 var gameTime;
 var difficulty;
 var score;
@@ -175,6 +177,7 @@ function drawGameOver(){
 
     tgames.gameOver( score );
     resetButton.style.display = 'block';
+    clearTimeoutParam = false;
 }
 
 // Resize canvas
@@ -280,13 +283,17 @@ function drawContinueByAds() {
     ctx.font = "32px sans-serif";
     ctx.fillText("Continue by watch ads?",canvas.width / 2 - 170,canvas.height / 2);
 
-    setTimeout(() => {
+    continueTimeout = setInterval(handleSkip, 4000);
+
+    watchAdsContainer.style.display = 'flex';
+}
+
+function handleSkip() {
+    if (!clearTimeoutParam) {
         watchAdsContainer.style.display = 'none';
         spareLife = false;
         drawGameOver();
-    }, 4000);
-
-    watchAdsContainer.style.display = 'flex';
+    }
 }
 
 //Draw Bonus points message
@@ -701,21 +708,24 @@ resetButton.addEventListener('click',() => {
         adsCounter--;
     }
 
-    if ( fader > .5 ) {
-        reset();
-        resetButton.style.display = 'none';
-    }
+    reset();
+    resetButton.style.display = 'none';
 });
 
 continueButton.addEventListener('click', async () => {
-    await tgames.showRewardedAd();
-    adsCounter--;
+    clearTimeoutParam = true;
+    try {
+        await tgames.showRewardedAd();
+    } catch (e) {
+        console.log(`we got error with ads: ${e}`)
+    }
 
+    adsCounter--;
     watchAdsContainer.style.display = 'none';
     gameOver = false;
     enemyScore = 0;
     initializeTimers();
-    render()
+    render();
 })
 
 skipButton.addEventListener('click', async () => {
