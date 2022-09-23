@@ -82,6 +82,7 @@ function initializeTimers(){
 function init(){
     tgames.gameStarted();
 
+    console.log('start')
     ready = false;
     clearTimers();
     initializeTimers();
