@@ -283,7 +283,7 @@ function drawContinueByAds() {
     ctx.font = "32px sans-serif";
     ctx.fillText("Continue by watch ads?",canvas.width / 2 - 170,canvas.height / 2);
 
-    continueTimeout = setInterval(handleSkip, 4000);
+    continueTimeout = setInterval(handleSkip, 8000);
 
     watchAdsContainer.style.display = 'flex';
 }
@@ -729,6 +729,7 @@ continueButton.addEventListener('click', async () => {
 })
 
 skipButton.addEventListener('click', async () => {
+    clearTimeoutParam = true;
     watchAdsContainer.style.display = 'none';
     spareLife = false;
     drawGameOver();
