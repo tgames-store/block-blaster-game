@@ -17,7 +17,7 @@ var renderTimer = setInterval(render,1/fps*100);
 var difficultyTimer;
 var spawnTimer;
 var spawntime;
-var continueTimeout;
+var continueTimeout = null;
 var clearTimeoutParam = false;
 var gameTime;
 var difficulty;
@@ -44,14 +44,16 @@ let watchAdsContainer = document.querySelector('.watchAdsContainer')
 //----------------
 
 //Reset app back to 'Ready?' Screen
-function reset() {
-    tgames.gameStarted();
+function reset(tag) {
+    if (!tag === 'init') {
+        tgames.gameStarted();
+    }
 
     if (score > highScore) highScore = score;
     ready = true;
     enemyScore = 0;
     gameTime = 0;
-    difficulty = 1;
+    difficulty = 50;
     score = 0;
     spawntime = 1500;
     gameOver = false;
@@ -82,7 +84,6 @@ function initializeTimers(){
 function init(){
     tgames.gameStarted();
 
-    console.log('start')
     ready = false;
     clearTimers();
     initializeTimers();
@@ -284,12 +285,18 @@ function drawContinueByAds() {
     ctx.font = "32px sans-serif";
     ctx.fillText("Continue by watch ads?",canvas.width / 2 - 170,canvas.height / 2);
 
-    continueTimeout = setInterval(handleSkip, 8000);
+    if (!continueTimeout) {
+        continueTimeout = setTimeout(handleSkip, 8000);
+    }
 
     watchAdsContainer.style.display = 'flex';
 }
 
 function handleSkip() {
+    clearTimeout(continueTimeout);
+
+    continueTimeout = null;
+
     if (!clearTimeoutParam) {
         watchAdsContainer.style.display = 'none';
         spareLife = false;
@@ -365,8 +372,6 @@ function setAlpha(color,alpha){
     }
 }
 
-
-
 //Entity death
 function death(entity){
     if (entity.name == "Enemy") {
@@ -414,7 +419,6 @@ function removeEntity(entity){
 
 //Check if two entities overlap
 function overlaps(entityA,entityB){
-
     var sa = entityA.size;
     var x1a = entityA.position.x;
     var x2a = entityA.position.x + sa;
@@ -685,7 +689,7 @@ PowerUp.prototype.render = function(){
 //	============================================================ //
 
 //HTML load event
-document.addEventListener('DOMContentLoaded', reset());
+document.addEventListener('DOMContentLoaded', reset('init'));
 
 //Close
 // document.getElementById("closeButton").onclick=function(){
@@ -709,7 +713,7 @@ resetButton.addEventListener('click',() => {
         adsCounter--;
     }
 
-    reset();
+    reset('game');
     resetButton.style.display = 'none';
 });
 
@@ -732,6 +736,7 @@ continueButton.addEventListener('click', async () => {
 skipButton.addEventListener('click', async () => {
     clearTimeoutParam = true;
     watchAdsContainer.style.display = 'none';
+    clearTimeout(continueTimeout);
     spareLife = false;
     drawGameOver();
 })
