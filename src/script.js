@@ -21,7 +21,7 @@ var continueTimeout = null;
 var gameTime;
 var difficulty;
 var score;
-var highScore = 0;
+var highScore = getHighScore();
 let adsCounter = 2;
 var gameOver;
 var entities = [];
@@ -48,7 +48,7 @@ function reset(tag) {
         tgames.gameStarted();
     }
 
-    if (score > highScore) highScore = score;
+    if (score > highScore) setHighScore(score);
     ready = true;
     enemyScore = 0;
     gameTime = 0;
@@ -106,6 +106,19 @@ function updateEntities(){
         }
         e.update(1/fps);
     })
+}
+
+function setHighScore(score) {
+    window.localStorage.setItem('high-score', score);
+    highScore = score;
+}
+
+function getHighScore() {
+    try {
+        return window.localStorage.getItem('high-score', score)
+    } catch (e) {}
+
+    return 0;
 }
 
 //Draw background
@@ -185,7 +198,7 @@ function handleResize() {
     ctx.canvas.width = window.innerWidth;
     ctx.canvas.height = window.innerHeight - 30;
     render();
-    player.position.set(canvas.width / 2,canvas.height-player.size);
+    player.position.set(canvas.width / 2, canvas.height-player.size);
 }
 
 //Render everything
@@ -715,18 +728,21 @@ resetButton.addEventListener('click',() => {
 });
 
 continueButton.addEventListener('click', async () => {
-    try {
-        await tgames.showRewardedAd();
-    } catch (e) {
-        console.log(`we got error with ads: ${e}`)
-    }
-
     adsCounter--;
     watchAdsContainer.style.display = 'none';
     gameOver = false;
     enemyScore = 0;
-    initializeTimers();
-    render();
+
+    try {
+        tgames.showRewardedAd()
+            .then(() => {
+                initializeTimers();
+                render();
+            })
+    } catch (e) {
+        initializeTimers();
+        render();
+    }
 })
 
 skipButton.addEventListener('click', async () => {
