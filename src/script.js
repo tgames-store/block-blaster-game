@@ -18,7 +18,6 @@ var difficultyTimer;
 var spawnTimer;
 var spawntime;
 var continueTimeout = null;
-var clearTimeoutParam = false;
 var gameTime;
 var difficulty;
 var score;
@@ -53,7 +52,7 @@ function reset(tag) {
     ready = true;
     enemyScore = 0;
     gameTime = 0;
-    difficulty = 50;
+    difficulty = 1;
     score = 0;
     spawntime = 1500;
     gameOver = false;
@@ -179,14 +178,14 @@ function drawGameOver(){
 
     tgames.gameOver( score );
     resetButton.style.display = 'block';
-    clearTimeoutParam = false;
 }
 
 // Resize canvas
 function handleResize() {
     ctx.canvas.width = window.innerWidth;
     ctx.canvas.height = window.innerHeight - 30;
-    render()
+    render();
+    player.position.set(canvas.width / 2,canvas.height-player.size);
 }
 
 //Render everything
@@ -297,11 +296,9 @@ function handleSkip() {
 
     continueTimeout = null;
 
-    if (!clearTimeoutParam) {
-        watchAdsContainer.style.display = 'none';
-        spareLife = false;
-        drawGameOver();
-    }
+    watchAdsContainer.style.display = 'none';
+    spareLife = false;
+    drawGameOver();
 }
 
 //Draw Bonus points message
@@ -718,7 +715,6 @@ resetButton.addEventListener('click',() => {
 });
 
 continueButton.addEventListener('click', async () => {
-    clearTimeoutParam = true;
     try {
         await tgames.showRewardedAd();
     } catch (e) {
@@ -734,7 +730,6 @@ continueButton.addEventListener('click', async () => {
 })
 
 skipButton.addEventListener('click', async () => {
-    clearTimeoutParam = true;
     watchAdsContainer.style.display = 'none';
     clearTimeout(continueTimeout);
     spareLife = false;
