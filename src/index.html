@@ -96,12 +96,18 @@
             background-position: center;
         }
 
+        #skip {
+            margin-top: 20px;
+            height: 60px;
+        }
+
         .watchAdsContainer {
             display: none;
-            width: 320px;
+            width: 150px;
             justify-content: space-between;
+            flex-direction: column;
             position: absolute;
-            top: 70%;
+            top: 65%;
             left: 50%;
             transform: translateX(-50%);
         }
@@ -112,7 +118,7 @@
             background: #96CC72;
             animation: timer 8s ease-in-out;
             position: absolute;
-            left: 170px;
+            /*left: 170px;*/
         }
 
         @keyframes timer {
