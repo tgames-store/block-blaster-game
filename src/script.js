@@ -45,6 +45,7 @@ let watchAdsContainer = document.querySelector('.watchAdsContainer')
 //Reset app back to 'Ready?' Screen
 function reset(tag) {
     if (!tag === 'init') {
+        // Let game started each time else init
         tgames.gameStarted();
     }
 
@@ -81,6 +82,7 @@ function initializeTimers(){
 
 //Initialize / Start game
 function init(){
+    // First init
     tgames.gameStarted();
 
     ready = false;
@@ -115,7 +117,7 @@ function setHighScore(score) {
 
 function getHighScore() {
     try {
-        return window.localStorage.getItem('high-score', score)
+        return window.localStorage.getItem('high-score', score) || 0;
     } catch (e) {}
 
     return 0;
@@ -170,6 +172,8 @@ function drawReadyScreen(){
     ctx.fillStyle = "rgba(255,255,255," + .5 + ")";
     ctx.font = "32px sans-serif";
     ctx.fillText("You have only 3 lives",canvas.width / 2 - 150,60 + canvas.height / 2);
+    ctx.font = "36px sans-serif";
+    ctx.fillText("Press to start",canvas.width / 2 - 100,120 + canvas.height / 2);
     drawScore();
 }
 
@@ -189,6 +193,7 @@ function drawGameOver(){
     ctx.font = "64px sans-serif";
     ctx.fillText("GAME OVER",canvas.width / 2 - 195,canvas.height / 2);
 
+    // Only one game over call
     tgames.gameOver( score );
     resetButton.style.display = 'block';
 }
@@ -265,6 +270,11 @@ function canvasClick(){
         fireBullet({x:player.size,y:-player.size},25);
     }
     if (score > 0) score -= 1;
+
+    if (score > 4000 && !tripleShotActive) {
+        drawTripleShotMessage(' MODE');
+        tripleShotActive = true;
+    }
 }
 
 //Fire bullet from player
@@ -298,7 +308,7 @@ function drawContinueByAds() {
     ctx.fillText("Continue by watch ads?",canvas.width / 2 - 170,canvas.height / 2);
 
     if (!continueTimeout) {
-        continueTimeout = setTimeout(handleSkip, 8000);
+        continueTimeout = setTimeout(handleSkip, 12000);
     }
 
     watchAdsContainer.style.display = 'flex';
@@ -326,11 +336,11 @@ function drawBonusPointsMessage(){
 }
 
 //Draw Triple shot message
-function drawTripleShotMessage(){
+function drawTripleShotMessage(mode = '!'){
     fader -= (.1 * 1/fps);
     ctx.fillStyle = "rgba(255,255,255," + fader + ")";
-    ctx.font = "72px sans-serif";
-    ctx.fillText("TRIPLE SHOT!",canvas.width/2 - 220,canvas.height/2);
+    ctx.font = "48px sans-serif";
+    ctx.fillText("TRIPLE SHOT" + mode,canvas.width/2 - 160,canvas.height/2);
     if (fader <= 0) {
         tripleShotMessage = false;
     }
@@ -344,7 +354,7 @@ function activateEffect(type){
         bonusPointsMessage=true;
         score += 250;
     }
-    else if (type == "tripleShot"){
+    else if (type == "tripleShot" && score < 4000){
         console.log("TRIPLE SHOT");
         fader = 1;
         tripleShotActive = true;
@@ -717,6 +727,7 @@ window.addEventListener("resize", handleResize);
 
 resetButton.addEventListener('click',() => {
     if (adsCounter === 0 || adsCounter < 0) {
+        // Show rewarded add, when user lose game each 3 times;
         tgames.showRewardedAd();
         adsCounter = 3;
     } else {
@@ -727,22 +738,47 @@ resetButton.addEventListener('click',() => {
     resetButton.style.display = 'none';
 });
 
+function handleTimeCounter(callBack) {
+    let counter = document.createElement('div')
+    counter.classList.add('counter');
+    counter.innerHTML = '5';
+    document.body.append(counter);
+
+    let timeCounterInterval = setInterval(() => {
+        if (+counter.innerHTML > 0) {
+            counter.innerHTML = String(+counter.innerHTML - 1);
+        } else {
+            clearInterval(timeCounterInterval);
+            counter.classList.remove('counter');
+            callBack();
+        }
+    }, 1000);
+}
+
 continueButton.addEventListener('click', async () => {
     adsCounter--;
     watchAdsContainer.style.display = 'none';
     gameOver = false;
     enemyScore = 0;
+    clearTimeout(continueTimeout);
+    continueTimeout = null;
 
     try {
+        // Let player to continue the game by watch ads
         tgames.showRewardedAd()
             .then(() => {
-                initializeTimers();
-                render();
-            })
+                handleTimeCounter(() => {
+                    initializeTimers();
+                    render();
+                })
+            });
     } catch (e) {
-        initializeTimers();
-        render();
+        handleTimeCounter(() => {
+            initializeTimers();
+            render();
+        })
     }
+    spareLife = false;
 })
 
 skipButton.addEventListener('click', async () => {
