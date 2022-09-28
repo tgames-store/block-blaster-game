@@ -193,9 +193,6 @@ function drawGameOver(){
     ctx.font = "64px sans-serif";
     ctx.fillText("GAME OVER",canvas.width / 2 - 195,canvas.height / 2);
 
-    console.log('over');
-    // Only one game over call
-    tgames.gameOver( score );
     resetButton.style.display = 'block';
 }
 
@@ -222,6 +219,9 @@ function render(){
         drawTripleShotMessage();
     }
     if ( gameOver ) {
+        // Only one game over call
+        tgames.gameOver( score );
+
         if ( spareLife ) {
             drawContinueByAds();
         } else {
