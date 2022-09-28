@@ -760,7 +760,6 @@ continueButton.addEventListener('click', async () => {
     adsCounter--;
     watchAdsContainer.style.display = 'none';
     gameOver = false;
-    enemyScore = 0;
     clearTimeout(continueTimeout);
     continueTimeout = null;
     spareLife = false;
@@ -769,6 +768,7 @@ continueButton.addEventListener('click', async () => {
         // Let player to continue the game by watch ads
         tgames.continueGameAd()
             .then(() => {
+                enemyScore = 0;
                 tgames.gameStarted();
                 handleTimeCounter(() => {
                     initializeTimers();
