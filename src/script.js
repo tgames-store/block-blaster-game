@@ -769,6 +769,7 @@ continueButton.addEventListener('click', async () => {
         // Let player to continue the game by watch ads
         tgames.continueGameAd()
             .then(() => {
+                tgames.gameStarted();
                 handleTimeCounter(() => {
                     initializeTimers();
                     render();
