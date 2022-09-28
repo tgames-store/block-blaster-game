@@ -193,6 +193,7 @@ function drawGameOver(){
     ctx.font = "64px sans-serif";
     ctx.fillText("GAME OVER",canvas.width / 2 - 195,canvas.height / 2);
 
+    console.log('over');
     // Only one game over call
     tgames.gameOver( score );
     resetButton.style.display = 'block';
@@ -765,11 +766,9 @@ continueButton.addEventListener('click', async () => {
     spareLife = false;
 
     try {
-        tgames.gamePaused();
         // Let player to continue the game by watch ads
-        tgames.showRewardedAd()
+        tgames.continueGameAd()
             .then(() => {
-                tgames.gameResumed();
                 handleTimeCounter(() => {
                     initializeTimers();
                     render();
