@@ -762,17 +762,18 @@ continueButton.addEventListener('click', async () => {
     enemyScore = 0;
     clearTimeout(continueTimeout);
     continueTimeout = null;
+    spareLife = false;
 
     try {
         tgames.gamePaused();
         // Let player to continue the game by watch ads
         tgames.showRewardedAd()
             .then(() => {
+                tgames.gameResumed();
                 handleTimeCounter(() => {
                     initializeTimers();
                     render();
-                    tgames.gameResumed();
-                })
+                });
             });
     } catch (e) {
         handleTimeCounter(() => {
@@ -780,7 +781,6 @@ continueButton.addEventListener('click', async () => {
             render();
         })
     }
-    spareLife = false;
 })
 
 skipButton.addEventListener('click', async () => {
