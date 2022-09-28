@@ -764,12 +764,14 @@ continueButton.addEventListener('click', async () => {
     continueTimeout = null;
 
     try {
+        tgames.gamePaused();
         // Let player to continue the game by watch ads
         tgames.showRewardedAd()
             .then(() => {
                 handleTimeCounter(() => {
                     initializeTimers();
                     render();
+                    tgames.gameResumed();
                 })
             });
     } catch (e) {
